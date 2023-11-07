@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #pragma comment(lib,"ws2_32.lib")//to get access to some functions
 #include <winsock2.h>
 #include <Windows.h>
@@ -35,22 +35,18 @@ struct UserData {
 //Считываем данные из config.json
 std::vector<UserData> read_data() {
     std::vector<UserData> config(0);
-
     std::ifstream config_file("config.json");
     nlohmann::json jsonData;
 
     if (config_file.is_open()) {
-
         config_file >> jsonData;
         size_t size = jsonData["User"].size();
         config.resize(size);
         // std::cout << config.size() << '\n';
         for (int i = 0; i < size; ++i) {
-
             config[i].username = jsonData["User"][i]["Username"];
             config[i].password = jsonData["User"][i]["Password"];
            // std::cout << "Username: " << config[i].username << " ,password: " << config[i].password << " msg : " << config[i].visible_msg << '\n';
-
         }
     }
     else {
@@ -89,7 +85,7 @@ void ClientHandler(int index) {
    //  std::cout << "=" << isAuthenticated(enteredUsername, enteredPassword, users, size) << '\n';
     if (isAuthenticated(enteredUsername, enteredPassword, users, size)) {
         //Если данные пользователя из файла совпадает с тем,что ввел пользователь,то помечаем это событие в лог-файле
-        std::string logMessage = "User" + enteredUsername + "is authenticated.\n";
+        std::string logMessage = enteredUsername + " is authenticated.\n";
         LogEvent(logMessage);
         std::cout << "logMessage:"<<logMessage;
 
@@ -98,18 +94,19 @@ void ClientHandler(int index) {
             recv(Connections[index], msg, sizeof(msg), NULL);//принимаем сообщение от нужного соединения
             std::string leave_msg(msg);
             if (leave_msg == "exit.") {
-                std::string leave_msg = enteredUsername + " left the chat.\n";
-                std::cout << leave_msg;
-                LogEvent(leave_msg);
+                std::string user_left = enteredUsername + " left the chat.\n";
+                std::string msg_user_left = enteredUsername + " left the chat.";
+                std::cout << user_left;
+                LogEvent(user_left);
                 for (int i = 0; i < Counter; i++) {
                     if (i == index) {
                         continue;//мы не можем отправить сообщение от соединения,который его и отправил
                     }
 
-                    send(Connections[i],msg, sizeof(msg), NULL);
+                    send(Connections[i],msg_user_left.c_str(), msg_user_left.size(), NULL);
                 }
-                closesocket(clientSocket);
-                Connections[index] = INVALID_SOCKET;
+               // closesocket(clientSocket);
+              // Connections[index] = INVALID_SOCKET;
 
                 break;
             }
