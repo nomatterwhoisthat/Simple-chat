@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #pragma comment(lib,"ws2_32.lib")//to get access to some functions
 #include <winsock2.h>
 #include <Windows.h>
@@ -6,9 +6,8 @@
 #include <fstream>
 #include <vector>
 #include <nlohmann/json.hpp>
-
 #pragma warning (disable:4996)
-//using json = nlohmann::json;
+
 SOCKET Connection;
 
 //Структура нужна для чтения данных из config.json
@@ -20,23 +19,17 @@ struct UserData {
 //Считываем данные из config.json
 std::vector<UserData> read_data() {
     std::vector<UserData> config(0);
-
     std::ifstream config_file("config.json");
     nlohmann::json jsonData;
 
     if (config_file.is_open()) {
-
         config_file >> jsonData;
-        std::cout << jsonData["User"].size() << '\n';
         size_t size = jsonData["User"].size();
         config.resize(size);
-        std::cout << config.size() << '\n';
         for (int i = 0; i < size; ++i) {
-
             config[i].username = jsonData["User"][i]["Username"];
             config[i].password = jsonData["User"][i]["Password"];
-           // std::cout << "Username: " << config[i].username << " ,password: " << config[i].password << " msg : " << config[i].visible_msg << '\n';
-
+            // std::cout << "Username: " << config[i].username << " ,password: " << config[i].password << " msg : " << config[i].visible_msg << '\n';
         }
     }
     else {
@@ -51,19 +44,13 @@ void ClientHandler() {
     //создадим бесконечный цикл,в котором будем смотреть сообщение от сервера и выводить его на экран
     while (true) {
         recv(Connection, msg, sizeof(msg), NULL);
-        std::string message(msg);
-        if (message == "exit.") {
-            std::cout << "User left the chat.\n";
-        }
-        else {
-            std::cout << msg << '\n';
-        }
+
+        std::cout << msg << '\n';
     }
 }
 
 //Функция проверяет совпадает ли имя пользователя и пароль из конфигурационного файла с тем,что ввел пользователь
 bool isAuthenticated(const std::string& username, const std::string& password, const std::vector<UserData>& users, size_t size) {
-
     for (int i = 0; i < size; i++) {
         //  std::cout << username << ' ' << config[i].username << ' ' << password << ' ' << config[i].password << '\n';
         if (username == users[i].username && password == users[i].password) {
@@ -72,6 +59,7 @@ bool isAuthenticated(const std::string& username, const std::string& password, c
     }
     return false;
 }
+
 //Функция,проверяющая корректность сообщения
 bool IsValidMessage(const char* message) {
     //Длина сообщения не больше 64 символов 
@@ -133,7 +121,7 @@ int main(int argc, char* argv[]) {
 
     if (isAuthenticated(username, password, user, size)) {
         std::cout << username << " entered to chat.\n";
- 
+
     }
 
     send(Connection, username.c_str(), (int)username.size(), NULL);
@@ -151,7 +139,7 @@ int main(int argc, char* argv[]) {
         if (std::string(msg) == "exit.") {
             std::cout << "You left the chat.\n";
             send(Connection, msg, sizeof(msg), NULL);
-            recv(Connection, msg, sizeof(msg), NULL);
+            // recv(Connection, msg, sizeof(msg), NULL);
             return -2;
         }
 
@@ -170,6 +158,6 @@ int main(int argc, char* argv[]) {
             std::cout << "end with '.', '!', or '?'.\n";
         }
     }
- 
+    closesocket(Connection);
     return 0;
 }
